@@ -1,0 +1,34 @@
+---
+import AboutHeroImage from '../assets/blog-placeholder-about.jpg';
+import Layout from '../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="About"
+	description="Who I am and what this blog is for."
+	pubDate={new Date('August 16 2026')}
+	heroImage={AboutHeroImage}
+>
+	<p>
+		I'm Alex Trandafir — a cybersecurity student in Leamington Spa, working my
+		way from an HND toward a BSc and a career in Identity and Access Management.
+		Chapter87 is where I document that journey in the open.
+	</p>
+
+	<p>
+		Most of what I write here starts as something I built in my homelab and got
+		stuck on: hybrid identity with Active Directory, Okta and Entra; a
+		self-hosted AI agent running on my own VPS; wireless security testing on my
+		own kit; NAS and network hardening. I'd rather show the work — including the
+		parts that broke — than list buzzwords.
+	</p>
+
+	<p>
+		If you're a recruiter or hiring manager: the posts are the portfolio. Each
+		one is a real project with the decisions, the mistakes, and what I'd do
+		differently. If you want to talk, the GitHub link in the footer is the
+		fastest way to reach me.
+	</p>
+
+	<p><em>This page is a starting point — edit it to sound like you.</em></p>
+</Layout>
