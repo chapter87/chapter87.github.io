@@ -7,7 +7,7 @@ heroImage: '../../assets/blog-placeholder-3.jpg'
 
 Every IAM job spec asks for the same things: directory services, single sign-on, least privilege, and lifecycle management. Most people learn those words from a slide deck. I decided to build the real thing at home instead — the same identity plumbing a mid-sized company quietly depends on — and run it until it broke, then fix it.
 
-Here is what I stood up on my own two-node hypervisor cluster.
+Here is what I stood up on my own two-node **Proxmox** cluster — the open-source virtualisation platform that runs my whole home lab.
 
 ## The directory is the source of truth
 
