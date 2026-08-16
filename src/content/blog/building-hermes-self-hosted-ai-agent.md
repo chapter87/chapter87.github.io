@@ -1,74 +1,98 @@
 ---
-title: 'Building Hermes: a self-hosted AI agent that never leaves me stuck'
-description: 'I wanted an AI assistant I fully control — reachable from my phone, running on my own box, that answers security questions instead of refusing them. Here is what it took, and what broke along the way.'
+title: 'Building Hermes: a self-hosted AI agent that runs my digital life'
+description: 'A personal AI agent living on my own VPS, reachable from my phone, that reads the live web, remembers context, survives provider outages, checks on my home network, and even edits its own code — built with security as the first constraint, not an afterthought.'
 pubDate: 'Aug 16 2026'
 heroImage: '../../assets/blog-placeholder-3.jpg'
 ---
 
-I use AI assistants all day for security work, and I kept hitting the same wall:
-the moment a question got genuinely technical, the answer turned into a refusal.
-Fair enough for a public service — but I wanted something I own, that runs on my
-own hardware, and that treats me like an adult. So I built one. I called it Hermes.
+I use AI assistants all day, and I kept wanting one that was *mine* — running on
+hardware I control, reachable from my pocket, able to actually do things rather than
+just chat, and built so that its considerable reach can't be turned against me. So I
+built one. I call it Hermes. What started as a chat bot has grown into a genuine
+personal operations agent, and the interesting story is as much about the security
+architecture as the features.
 
-## What it actually is
+## The shape of it
 
-Hermes is a small Python service on a cheap VPS, wired to a chat bot I message
-from my phone. I can ask it anything, hand it a task, and get a real answer back
-in a few seconds. Nothing about my usage leaves infrastructure I control.
+Hermes is a Python service on a small VPS, and I talk to it through a messaging app
+from anywhere. Underneath that simple front door sits a real agent: it can call
+tools, hold a conversation with memory, reach out to the live internet, and take
+actions on my own infrastructure. None of it is exposed to the public internet —
+which, given what it can do, is the whole point.
 
-The interesting engineering isn't the chat loop — that part is easy. It's
-everything I had to add to make it *reliable* and *useful* when I'm not watching it.
+## Making it reliable: provider failover
 
-## Reliability: a model fallback chain
+A single AI provider is a single point of failure. Rate-limit it or have it go down
+and the assistant is dead. So Hermes routes each request down a chain of models and
+providers, falling back automatically when one stalls or refuses, ending at a model
+that will always answer. I put an AI-gateway service in front of the whole thing to
+manage that routing and failover cleanly. The result is an assistant that stays up
+and useful even when a provider has a bad day. Cold starts on the fallback used to
+make it feel broken; a small scheduled warm-ping keeps it awake and ready.
 
-A single model provider is a single point of failure. Rate-limit it, or have it
-refuse, and the whole assistant is dead. So Hermes routes each request down a
-chain: a fast hosted model first, and if that fails or stalls, it falls back —
-ending at a model running locally that will always answer. The effect is an
-assistant that stays up and stays useful even when the primary is unavailable.
+## Giving it memory and the live web
 
-Getting that chain right took more tuning than I expected. Cold starts on the
-fallback were brutal — the first request after an idle period could take long
-enough that it felt broken. The fix was a warm-ping: a tiny scheduled request
-that keeps the fallback awake, so it's ready when I actually need it.
+Two upgrades turned it from a toy into something I rely on. First, **memory** — a
+local memory engine so it remembers earlier context in a conversation and can recall
+facts across sessions, all stored on my own box rather than a cloud. Second, **eyes
+on the live internet** — a set of tools that let it fetch and read web pages, pull
+articles and video transcripts, and read public feeds, so its answers aren't frozen
+at some training cutoff. An agent that can't read today's web is guessing; one that
+can is genuinely useful.
 
-## The bug that kept coming back: self-update ate my patches
+## Reaching my own world — carefully
 
-Here's the one I'd put on the whiteboard. Hermes can update itself. Great —
-except the update process pulled a clean copy and quietly overwrote the local
-patches that made it behave the way I wanted. I'd fix something, it would work
-for days, then an update would silently revert it and I'd be debugging a
-"regression" that was really my own automation undoing my own work.
+This is the capability I'm proudest of and most careful about. Hermes can reach into
+my own infrastructure: check the health and status of my home network, see how my
+own devices are doing, and act on machines I own — all from a message sent while I'm
+miles away. That's powerful, and power pointed at your own home is exactly the thing
+you have to secure properly or not build at all.
 
-The lesson was one I keep re-learning: **anything that rewrites your code needs
-to know what it's not allowed to touch.** The fix was to stop treating my
-customisations as edits to upstream files and instead layer them so an update
-can't clobber them. Since then, updates are boring — which is exactly what you
-want from an update.
+So the reach is wrapped in defense in depth, and this is the part worth copying:
 
-## Letting it fix itself
+- **Nothing is exposed to the internet.** The agent's services sit behind a
+  default-deny firewall. The only way in is the messaging front door, and the only
+  way it reaches home is over an authenticated, encrypted private mesh — never an
+  open port, never the public network.
+- **It only obeys me.** The bot answers a single authorised identity. A stranger who
+  finds it gets nothing.
+- **Least privilege, everywhere.** It can do the specific things I've granted and
+  nothing broader, and the sensitive paths run through a hardened jump point rather
+  than exposing the network directly.
 
-Once it was stable, I gave Hermes a command that lets it edit its own code,
-compile-check the change, and restart itself cleanly in the background. It sounds
-reckless, and it would be without the compile gate — that check is the whole
-safety net. If the change doesn't build, it doesn't ship, and the running version
-stays up. This is the feature I'm proudest of, and also the one I test the most
-carefully.
+The lesson that shaped all of it: **the more capable you make an agent, the more its
+security is the actual project.** The features are the easy half. Making sure a thing
+that can act on your home network can't be hijacked into acting *against* it is the
+half that takes the real engineering.
+
+## Letting it fix itself — behind a safety gate
+
+Once it was stable I gave Hermes the ability to edit its own code, compile-check the
+change, and restart itself cleanly. That sounds reckless, and it would be without the
+compile gate — that check is the whole safety net. If the change doesn't build, it
+doesn't ship, and the running version stays up.
+
+There was a hard lesson buried here too. The agent can also update itself from
+upstream, and early on those updates silently overwrote my local customisations — I'd
+fix something, and days later an update would quietly revert it. The fix was to stop
+treating my changes as edits to upstream files and layer them so an update can't
+clobber them. Anything that can rewrite your system needs to know what it's not
+allowed to touch.
 
 ## Watching the watcher
 
-The last piece: Hermes can't be trusted to report its own death. If the VPS
-falls over, a service on the VPS is in no position to tell me. So a second,
-completely separate little machine at home polls it from the outside every few
-minutes and messages me if it goes quiet, plus a daily heartbeat so I know the
-monitoring itself is alive. Out-of-band monitoring is one of those lessons you
-only learn once, usually the hard way.
+The last piece: Hermes can't be trusted to report its own death. So a second,
+completely separate little machine at home watches it from the outside and messages
+me if it goes quiet, plus a daily heartbeat so I know the monitoring itself is alive.
+Out-of-band monitoring is a lesson you learn once, usually the hard way.
 
-## What I'd tell someone starting this
+## What it taught me
 
-- The chat loop is a weekend. The reliability is the project.
-- Assume every external dependency will fail, and design the fallback first.
-- Anything that can rewrite your system needs a hard boundary and a safety gate.
-- Monitor from outside the thing you're monitoring.
+The chat loop was a weekend. Everything that makes Hermes genuinely useful *and*
+safe — the failover, the memory, the careful reach into my own network, the
+self-editing behind a gate, the external watchdog — is where the real work lives. And
+the throughline is the one I most want to carry into security work: build the
+capability, then spend most of your time making sure it can only ever be used by the
+person it's meant for.
 
-*Tech: Python, a chat bot API, systemd, a VPS, a Raspberry Pi for out-of-band monitoring.*
+*Tech: Python, a messaging bot front end, an AI-gateway for provider failover, a local memory engine, web-reading tools, a private mesh VPN, systemd, a Raspberry Pi for out-of-band monitoring.*
