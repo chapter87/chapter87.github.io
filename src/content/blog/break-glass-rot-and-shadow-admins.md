@@ -15,7 +15,7 @@ Break-glass first, because it's the control people are proud of. You create an e
 
 Then you seal the password in an envelope and forget it exists.
 
-Two years later, three things may be true and you don't know which. The password might have aged out, if the account follows the domain policy and nobody set `DONT_EXPIRE_PASSWORD` (userAccountControl bit 0x10000). Someone might have "cleaned up stale accounts" and disabled it. Or it works fine and you still can't tell, because you excluded it from the exact policies that generate your sign-in telemetry. You built an account to bypass your controls, then stopped watching it. `pwdLastSet` reads two years old and no one has logged in with it since.
+Two years later, three things may be true and you don't know which. The password might have aged out, if the account follows the domain policy and nobody set `DONT_EXPIRE_PASSWORD` (userAccountControl bit 0x10000). Someone might have "cleaned up stale accounts" and disabled it. Or it works fine and you still can't tell, because excluding it from Conditional Access also quietly took it out of the risk-based detections and alerts most teams actually watch — the raw sign-in log still records every use, but nobody has wired an alert to it. You built an account to bypass your controls, then stopped watching it. `pwdLastSet` reads two years old and no one has logged in with it since.
 
 ## The admins who were never in the group
 
