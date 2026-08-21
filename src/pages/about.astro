@@ -5,30 +5,101 @@ import Layout from '../layouts/BlogPost.astro';
 
 <Layout
 	title="About"
-	description="Who I am and what this blog is for."
-	pubDate={new Date('August 16 2026')}
+	description="Alex Trandafir — identity & access engineering, with a specialism in non-human identity. What I'm building toward, and the evidence for it."
+	pubDate={new Date('August 24 2026')}
 	heroImage={AboutHeroImage}
 >
 	<p>
-		I'm Alex Trandafir — a cybersecurity student in Leamington Spa, working my
-		way from an HND toward a BSc and a career in Identity and Access Management.
-		Chapter87 is where I document that journey in the open.
+		I'm Alex Trandafir, and I'm building toward a career in Identity and Access
+		Management — specifically the corner of it most programmes are only starting
+		to notice: <strong>non-human identity</strong>. The service accounts, API
+		tokens, workload credentials, and now AI agents that quietly outnumber the
+		humans in every estate by something like eighty to one, and that almost
+		nobody governs. That's the niche I've chosen, and this blog is the evidence
+		I'm earning the right to work in it.
+	</p>
+
+	<h2>Why non-human identity</h2>
+
+	<p>
+		Human single sign-on is a mature, crowded field. The identities that actually
+		get organisations breached lately have not been stolen passwords — they've
+		been leaked tokens, forgotten service accounts, and sync credentials nobody
+		was watching. There is no certification for this yet, which means the way in
+		is not a badge; it's demonstrable work. So I do the work in public.
 	</p>
 
 	<p>
-		Most of what I write here starts as something I built in my homelab and got
-		stuck on: hybrid identity with Active Directory, Okta and Entra; a
-		self-hosted AI agent running on my own VPS; wireless security testing on my
-		own kit; NAS and network hardening. I'd rather show the work — including the
-		parts that broke — than list buzzwords.
+		My edge is an unusual combination. I <strong>build</strong> — including a
+		self-hosted AI agent that runs with real credentials, where I had to solve
+		the exact problem the field is now waking up to: what identity does an
+		autonomous agent act under, and how do you stop it reaching further than it
+		should. I can <strong>attack</strong> — I reproduce real vulnerabilities and
+		find live attack paths. And I can <strong>detect</strong> — I run a SOC over
+		my own lab. Attack it, control it, detect it. Most people in identity can do
+		one of those three.
+	</p>
+
+	<h2>The evidence, not the buzzwords</h2>
+
+	<p>
+		I'd rather show the work — including the parts that broke — than list skills.
+		A few of the pieces on this blog I'd point a hiring manager at first:
+	</p>
+
+	<ul>
+		<li>
+			<strong>Reproducing a critical CVE that had no public exploit.</strong> I
+			took a days-old, actively-exploited GitLab vulnerability with no
+			proof-of-concept anywhere, worked the mechanism out from the patch diff,
+			reproduced it reliably — and then stopped exactly where the evidence
+			stopped, instead of overclaiming the impact. Knowing the limit of what
+			you've proven is the job.
+		</li>
+		<li>
+			<strong>The shortest path to domain admin in my own lab.</strong> Ran
+			attack-path analysis against my Active Directory domain and found the
+			fastest route to owning everything ran through the cloud-sync service
+			account — a non-human identity that every group-membership audit calls
+			harmless, holding domain-replication rights through a direct ACL. Then I
+			built the read-only tool that finds that whole class of exposure.
+		</li>
+		<li>
+			<strong>Counting my own machine identities.</strong> Forty non-human
+			identities to my one human one, every one of them long-lived — a real
+			before/after audit of my own estate, with the remediation and the honest
+			note about what I fixed and what I deliberately left for later.
+		</li>
+		<li>
+			<strong>Hybrid identity, hands-on.</strong> A working homelab running
+			Active Directory synced to both Okta and Entra ID, Okta managed as code
+			with Terraform, and the joiner-mover-leaver plumbing that connects them —
+			the fundamentals an IAM role is actually built on.
+		</li>
+	</ul>
+
+	<p>
+		The rest of the blog fills in the breadth: SAML and OIDC failure modes,
+		OAuth2 done wrong, SCIM's coverage gap, the joiner-mover-leaver problems that
+		wreck least privilege, privileged access, phishing-resistant MFA, and the
+		non-human identity work that's my focus. Each post leads with a real problem
+		and is honest about what doesn't work — because in security, knowing the
+		limits of what you've proven is the skill that separates a professional from
+		someone running downloaded scripts.
+	</p>
+
+	<h2>Where I'm at</h2>
+
+	<p>
+		I'm finishing an HND and starting a BSc top-up, doing self-employed IT
+		consulting, and building the identity capability in the open in the meantime.
+		I'm in Leamington Spa and open to IAM and security-engineering roles, remote
+		or Midlands-based.
 	</p>
 
 	<p>
 		If you're a recruiter or hiring manager: the posts are the portfolio. Each
 		one is a real project with the decisions, the mistakes, and what I'd do
-		differently. If you want to talk, the GitHub link in the footer is the
-		fastest way to reach me.
+		differently. The GitHub link in the footer is the fastest way to reach me.
 	</p>
-
-	<p><em>This page is a starting point — edit it to sound like you.</em></p>
 </Layout>
