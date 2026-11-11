@@ -39,22 +39,58 @@ Least-significant-bit steganography is the textbook method. A white pixel is 255
 Change the last bit and it becomes 254, which no eye and no monitor will distinguish. Do that
 across a few hundred colour values and you have room for a short string.
 
-The numbers from my run:
+### The image
+
+This is the carrier. It is the real file, not a mock-up. I have put a thin border on it
+because otherwise you could not find it on the page.
+
+<img src="/nhi-stego/carrier.png" alt="A plain white square: the carrier image with data hidden in it" width="256" height="256" style="border: 1px solid #999;" />
+
+You can [download it](/nhi-stego/carrier.png) and check it yourself. It is not malware in the
+sense of something that runs. It is a picture with a message hidden in it, and the message is
+a throwaway secret I generated for this post and enrolled nowhere.
 
 ```
 image size            : 256x256 RGB
-channel values changed: 449 of 196608 (0.228%)
+channel values changed: 527 of 196608 (0.268%)
 max change per channel: 1 / 255
+sha256 (file)         : 775bf73b32cb71971b6a1a8f0ff206e2dd0ffa796a4164226ac17eb327790aed
 ```
 
-Fewer than a quarter of one percent of the values moved, each by one step out of 255. The
-image is still white. To see anything at all you have to throw away the top seven bits and
-blow the last one up to full brightness. This is the first eight rows of the carrier, treated
-that way:
+About a quarter of one percent of the values moved, each by one step out of 255.
 
-![The lowest bit of each colour value, amplified. The scattered dark marks at the start are the hidden data; the solid area after it is untouched image.](../../assets/nhi-stego/lsb-plane-amplified.png)
+### The same image, revealed
 
-That speckled strip is the secret. Everything after it is unmodified.
+To see anything you have to throw away the top seven bits of every colour value and blow the
+last one up to full brightness. This is the top four rows of that same file, treated that way
+and enlarged:
+
+![The lowest bit of each colour value in the top rows of the carrier, amplified. The speckled part is the hidden data; the solid white after it is untouched image.](../../assets/nhi-stego/lsb-plane-amplified.png)
+
+The speckle is the hidden data. Read those bits back in order and you get this:
+
+```
+otpauth://totp/NHI-Lab-Demo:demo-user%40example.invalid?secret=A6IBIFZUHNYNT656KD5NXRA4KBW7ACOQ&issuer=NHI-Lab-Demo
+```
+
+That is the exact string an authenticator app receives when you scan an enrolment QR code.
+Whoever holds it can generate the same six-digit codes as the account owner.
+
+If you want to pull it out of the downloaded file yourself, this is all it takes:
+
+```python
+from PIL import Image
+
+raw = Image.open("carrier.png").convert("RGB").tobytes()
+bits = [b & 1 for b in raw]
+
+def take(start, n):
+    return bytes(int("".join(map(str, bits[(start + i) * 8:(start + i) * 8 + 8])), 2)
+                 for i in range(n))
+
+assert take(0, 4) == b"NHI1"                       # my marker
+print(take(8, int.from_bytes(take(4, 4), "big")).decode())
+```
 
 ## What the agent did with it
 
